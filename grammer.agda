@@ -126,7 +126,7 @@ data array where
   [_] : Maybe ⋄ → List(EXPR × ⋄) → EXPR → Maybe ⋄ → array
 
 data subject where
-  atomToSubject : atom → subject
+  atomAsSubject : atom → subject
   _‿_‿_ : ANY → ANY → List ANY → subject
 
 data ASGN where
@@ -143,9 +143,9 @@ data -m1Expr where
   case2 : Var → ASGN → -m1Expr → -m1Expr
 
 data Derv where
-  FuncToDerv : Func → Derv
-  -mod1CallToDerv : Operand → -mod1 → Derv
-  -mod2-CallToDerv : Operand → -mod2- → ( subject ⊎ Func ) → Derv
+  FuncAsDerv : Func → Derv
+  -mod1CallAsDerv : Operand → -mod1 → Derv
+  -mod2-CallAsDerv : Operand → -mod2- → ( subject ⊎ Func ) → Derv
 
 data Operand where
   case1 : subject → Operand
@@ -165,15 +165,15 @@ data FuncExpr where
   case2 : Var → ASGN → FuncExpr → FuncExpr
 
 data arg where
-  subjectToArg : subject → arg
-  DervCallToArg : Maybe (subject ⊎ nothing) → Derv → subExpr → arg
+  subjectAsArg : subject → arg
+  DervCallAsArg : Maybe (subject ⊎ nothing) → Derv → subExpr → arg
 
 data noExpr where
   case1 : nothing → noExpr
   case2 : Maybe (subject ⊎ nothing) → Derv → noExpr → noExpr
 
 data subExpr where
-  argToSubExpr : arg → subExpr
+  argAsSubExpr : arg → subExpr
   assignment : lhs → ASGN → subExpr → subExpr
   Modified-assignment : lhs → Derv → Maybe subExpr → subExpr
 

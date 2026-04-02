@@ -6,13 +6,13 @@ open import Data.List using ([])
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 
 module grammerEx where
-  example : PROGRAM
-  example = Program
+  1+1Prog : PROGRAM
+  1+1Prog = Program
     ignore
     []
-    (ExprAsStmt (subExprAsExpr (argToSubExpr (DervCallToArg
-      (just (inj₁ (atomToSubject (literalAsAtom "1"))))
-      (FuncToDerv (FuncLiteralAsFunc "+"))
-      (argToSubExpr (subjectToArg (atomToSubject (literalAsAtom "1"))))
+    (ExprAsStmt (subExprAsExpr (argAsSubExpr (DervCallAsArg
+      (just (inj₁ (atomAsSubject (literalAsAtom "1"))))
+      (FuncAsDerv (FuncLiteralAsFunc "+"))
+      (argAsSubExpr (subjectAsArg (atomAsSubject (literalAsAtom "1"))))
     ))))
     ignore
