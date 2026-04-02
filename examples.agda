@@ -1,14 +1,13 @@
 module examples where
 
+open import grammer
+open import Data.Maybe using (just) renaming (nothing to ignore)
+open import Data.List using ([])
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+
 module grammerEx where
-
-  open import grammer
-  open import Data.Maybe using (just) renaming (nothing to ignore)
-  open import Data.List using ([])
-  open import Data.Sum using (_⊎_; inj₁; inj₂)
-
   example : PROGRAM
-  example = case1
+  example = Program
     ignore
     []
     (ExprAsStmt (subExprAsExpr (argToSubExpr (DervCallToArg

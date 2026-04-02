@@ -70,7 +70,7 @@ data ⋄ : Set where
   ⋄ₗ : ⋄
 
 data PROGRAM where
-  case1 : Maybe ⋄ → List ( STMT × ⋄ ) → STMT → Maybe ⋄ → PROGRAM
+  Program : Maybe ⋄ → List ( STMT × ⋄ ) → STMT → Maybe ⋄ → PROGRAM
 
 data STMT where
   ExprAsStmt : EXPR → STMT
