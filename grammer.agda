@@ -73,15 +73,15 @@ data PROGRAM where
   case1 : Maybe ⋄ → List ( STMT × ⋄ ) → STMT → Maybe ⋄ → PROGRAM
 
 data STMT where
-  case1 : EXPR → STMT
-  case2 : noExpr → STMT
-  case3 : EXPORT → STMT
+  ExprAsStmt : EXPR → STMT
+  NoExprAsStmt : noExpr → STMT
+  ExportAsStmt : EXPORT → STMT
 
 data EXPR where
-  case1 : subExpr → EXPR
-  case2 : FuncExpr → EXPR
-  case3 : -m1Expr → EXPR
-  case4 : -m2Expr- → EXPR
+  subExprAsExpr : subExpr → EXPR
+  FuncExprAsExpr : FuncExpr → EXPR
+  -m1ExprAsExpr : -m1Expr → EXPR
+  -m2-ExprAsExpr : -m2Expr- → EXPR
 
 data EXPORT where
   _⇐ : (Maybe LHS-ELT) → EXPORT
@@ -105,17 +105,17 @@ data -mod1 where
   case4 : -blMod1 → -mod1
 
 data Func where
-  case1 : Maybe atom → Var → Func
-  case2 :  Var → Func
-  ⟨case3⟩ : FuncExpr → Func
-  case4 :  BlFunc → Func
+  VarAsFunc : Maybe atom → Var → Func
+  FuncLiteralAsFunc : Var → Func
+  EnclosedFuncExprAsFunc : FuncExpr → Func
+  BlockLiteralAsFunc : BlFunc → Func
 
 data atom where
-  case1• : Maybe atom → Var → atom
-  case2 :  Var → atom
-  ⟨case3⟩ : subExpr → atom
-  case4 :  blSub → atom
-  case5 : array → atom
+  varAsAtom : Maybe atom → Var → atom
+  literalAsAtom : Var → atom
+  enclosedSubExprAsAtom : subExpr → atom
+  blockSubExprAsAtom : blSub → atom
+  arrayAsAtom : array → atom
 
 data nothing where
   · : nothing
@@ -126,7 +126,7 @@ data array where
   [_] : Maybe ⋄ → List(EXPR × ⋄) → EXPR → Maybe ⋄ → array
 
 data subject where
-  case1 : atom → subject
+  atomToSubject : atom → subject
   _‿_‿_ : ANY → ANY → List ANY → subject
 
 data ASGN where
@@ -143,9 +143,9 @@ data -m1Expr where
   case2 : Var → ASGN → -m1Expr → -m1Expr
 
 data Derv where
-  case1 : Func → Derv
-  case2 : Operand → -mod1 → Derv
-  case3 : Operand → -mod2- → ( subject ⊎ Func ) → Derv
+  FuncToDerv : Func → Derv
+  -mod1CallToDerv : Operand → -mod1 → Derv
+  -mod2-CallToDerv : Operand → -mod2- → ( subject ⊎ Func ) → Derv
 
 data Operand where
   case1 : subject → Operand
@@ -165,16 +165,16 @@ data FuncExpr where
   case2 : Var → ASGN → FuncExpr → FuncExpr
 
 data arg where
-  case1 : subject → arg
-  case2 : Maybe (subject ⊎ nothing) → Derv → subExpr → arg
+  subjectToArg : subject → arg
+  DervCallToArg : Maybe (subject ⊎ nothing) → Derv → subExpr → arg
 
 data noExpr where
   case1 : nothing → noExpr
   case2 : Maybe (subject ⊎ nothing) → Derv → noExpr → noExpr
 
 data subExpr where
-  case1 : arg → subExpr
-  case2 : lhs → ASGN → subExpr → subExpr
+  argToSubExpr : arg → subExpr
+  assignment : lhs → ASGN → subExpr → subExpr
   Modified-assignment : lhs → Derv → Maybe subExpr → subExpr
 
 data NAME where
