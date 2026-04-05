@@ -1,3 +1,5 @@
+module Real where
+
 open import Data.Product using (∃; _,_)
 open import Function using (_∘_)
 open import Data.Product using (_×_)
@@ -26,6 +28,7 @@ import Data.Rational.Properties as ℚp using () renaming (
   +-identityʳ to x∊ℚ→x+0≡x )
 
 -- https://en.wikipedia.org/wiki/Construction_of_the_real_numbers#Construction_by_Dedekind_cuts
+-- Extended to infinities by ignoring that A≢⊥∧A≢⊤
 data ℝ∞ : Set₁ where
   real  : (A : ℚ → Set)
         → ( ∀{x y : ℚ}
@@ -39,7 +42,7 @@ data ℝ∞ : Set₁ where
 -∞ : ℝ∞
 -∞ = real (λ z → ⊥) (λ p2 ()) λ x ()
 
-0<1 = ℤ<ℤ→ℚ<ℚ {0ℚ} {1ℚ}(ℕ<ℕ→ℤ<ℤ (ℕ<ℕ→1+ℕ<1+ℕ (0<1+ℕ)))
+0<1 = ℤ<ℤ→ℚ<ℚ {0ℚ} {1ℚ} (ℕ<ℕ→ℤ<ℤ (ℕ<ℕ→1+ℕ<1+ℕ (0<1+ℕ)))
   where
     open R
 
