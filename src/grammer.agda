@@ -1,4 +1,5 @@
 module grammer where
+-- https://mlochbaum.github.io/BQN/spec/grammar.html
 
 open import Data.List using (List; _∷_; [])
 open import Data.Maybe using (Maybe)
