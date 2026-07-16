@@ -1,56 +1,163 @@
 module Real where
 
-open import Data.Product using (∃; _,_)
+open import Data.Product using (Σ; ∃; _,_; proj₁; proj₂)
 open import Function using (_∘_)
 open import Data.Product using (_×_)
-import Data.Rational as R using (ℚ; _<_; _+_; 0ℚ; 1ℚ)
-open R using (ℚ) renaming (_<_ to _<ℚ_)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤; tt)
+open import Relation.Nullary.Negation.Core using (¬_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
+open import Level using () renaming (suc to lsuc)
 
-open import Data.Rational using () renaming (
-  *<* to ℤ<ℤ→ℚ<ℚ )
+import Data.Rational as ℚ; open ℚ using (ℚ)
+import Data.Rational.Properties as ℚ
+import Data.Rational.Unnormalised as ℚᵘ; open ℚᵘ using (ℚᵘ)
+import Data.Rational.Unnormalised.Properties as ℚᵘ
+open import Data.Nat.Coprimality using (Coprime; 1-coprimeTo)
 
-open import Data.Integer using () renaming (
-  +<+ to ℕ<ℕ→ℤ<ℤ )
+import Data.Integer as ℤ; open ℤ using (ℤ; +_) renaming (
+  +<+ to ℕ<ℕ→ℤ<ℤ)
 
-open import Data.Nat using () renaming (
+import Data.Nat as ℕ; open ℕ using (ℕ) renaming (
   s≤s to ℕ<ℕ→1+ℕ<1+ℕ;
   z≤n to 0<1+ℕ )
 
-open import Relation.Binary.PropositionalEquality using () renaming (
-  sym to x≡y→y≡x )
 
-import Data.Rational.Properties as ℚp using () renaming (
-  ≤-reflexive to x≡y→x≤y;
-  ≤-<-trans to x≤y→y<z→x<z;
-  +-monoʳ-< to x∊ℚ→y<z→x+y<x+z;
-  +-identityʳ to x∊ℚ→x+0≡x )
+open import Relation.Nullary.Negation.Core using (¬_)
 
 -- https://en.wikipedia.org/wiki/Construction_of_the_real_numbers#Construction_by_Dedekind_cuts
--- Extended to infinities by ignoring that A≢⊥∧A≢⊤
-data ℝ∞ : Set₁ where
-  real  : (A : ℚ → Set)
-        → ( ∀{x y : ℚ}
-          → x <ℚ y
-          → A y
-          → A x
-        ) → (
-          ∀ x → A x → ∃ λ y → A y × x <ℚ y
-        ) → ℝ∞
+-- Extended to infinities by ignoring that Ax≢⊥∧Ax≢⊤
+record ℝ∞ {ℓ} : Set (lsuc ℓ) where
+  constructor real∞
+  field
+    LeftOfCut  : ℚ → Set ℓ
+    leftFilled : ∀ x y → x ℚ.< y → LeftOfCut y → LeftOfCut x
+    noMax      : ∀ x → LeftOfCut x → ∃ λ y → LeftOfCut y × x ℚ.< y
 
 -∞ : ℝ∞
--∞ = real (λ z → ⊥) (λ p2 ()) λ x ()
+-∞ = real∞ (λ z → ⊥) (λ a b p2 ()) λ x ()
 
-0<1 = ℤ<ℤ→ℚ<ℚ {0ℚ} {1ℚ} (ℕ<ℕ→ℤ<ℤ (ℕ<ℕ→1+ℕ<1+ℕ (0<1+ℕ)))
-  where
-    open R
+0<1 = ℚ.*<* {ℚ.0ℚ} {ℚ.1ℚ} (ℕ<ℕ→ℤ<ℤ (ℕ<ℕ→1+ℕ<1+ℕ (0<1+ℕ)))
 
 +∞ : ℝ∞
-+∞ = real (λ x → ⊤) (λ p2 p3 → tt) λ x tt → (x + 1ℚ) , tt ,
-  x≤y→y<z→x<z
-    (x≡y→x≤y (x≡y→y≡x (x∊ℚ→x+0≡x x)))
-    (x∊ℚ→y<z→x+y<x+z x 0<1)
++∞ = real∞ (λ x → ⊤) (λ a b p2 p3 → tt) λ x tt → (x ℚ.+ ℚ.1ℚ) , tt ,
+  ℚ.≤-<-trans
+    (ℚ.≤-reflexive (sym (ℚ.+-identityʳ x)))
+    (ℚ.+-monoʳ-< x 0<1)
+
+
+--import Data.Rational.Properties
+--  using (<⇒≤;fromℚᵘ-cong;toℚᵘ-cong;toℚᵘ-cancel-<;toℚᵘ-mono-<; nonZero⇒1/nonZero)
+--  renaming (
+--  ≤-reflexive to ℚx≡y→x≤y;
+--  ≤-<-trans to ℚx≤y→y<z→x<z;
+--  +-monoʳ-< to ℚy<z→x+y<x+z;
+--  +-identityʳ to ℚx+0≡x;
+--  <-≤-trans to ℚx<y→y≤z→x<z;
+--  <-trans to ℚx<y→y<z→x<z;
+--  positive⁻¹ to ℚpositive⁻¹;
+--  pos⇒nonZero to ℚpos⇒nonZero;
+--  pos⇒nonNeg to ℚpos⇒nonNeg;
+--  1/pos⇒pos to ℚ1/pos⇒pos;
+--  *-monoʳ-≤-nonNeg to ℚ*-monoʳ-≤-nonNeg;
+--  *-monoʳ-<-pos to ℚ*-monoʳ-<-pos
+--  )
+
+
+open import Relation.Binary.Core using (Rel)
+
+data _<ℝ∞_ {ℓ} : Rel ℝ∞ (lsuc ℓ) where
+  *<ℝ∞* : {A a : ℚ → Set ℓ}
+      → ∀ {F f G g}
+      → (∀ x → A x → a x)
+      → (∃ λ x → A x → ¬ a x)
+      → real∞ A F G <ℝ∞ real∞ a f g
+
+--midpoint : (x y : ℚ) → x ℚ.< y → ∃ λ z → z ℚ.< y × x ℚ.< z
+--midpoint x y z =
+--  (x ℚ.+ y) ℚ.* ℚ.½
+--  , {!   !} --ℚ.≤-<-trans {(x ℚ.+ y) ℚ.* ℚ.½} {{!   !}} (ℚ.<⇒≤ {!  ℚ.*-distribʳ-+ ℚ.½ x y !}) {!   !} , {!   !}
+
+--ℚ→ℝ∞ : ℚ → ℝ∞
+--ℚ→ℝ∞ x = real∞
+--  (ℚ._< x) (λ xx yy → ℚ.<-trans) (λ a → midpoint a x)
+--
+--√_ : ℝ∞ → ℝ∞
+--√ r = real∞
+--    LeftOfCut
+--    f
+--    {!   !}
+--  where
+--    LeftOfCut = λ q → ℚ.0ℚ ℚ.> q ⊎ ℚ→ℝ∞ (q ℚ.* q) <ℝ∞ r
+--    f : ∀ x y → x ℚ.< y → LeftOfCut y → LeftOfCut x
+--    f x y x₁ x₂ = {!   !}
+
+Series : ℕ → ℚ
+Series ℕ.zero = ℚ.0ℚ
+Series (ℕ.suc n) = Series n ℚ.+ (+ 1 ℚ./ ℕ.suc n) ℚ.* (+ 1 ℚ./ ℕ.suc n)
+
+normalize-≤ : (x : ℚ) → ℚᵘ.0ℚᵘ ℚᵘ.< ℚ.toℚᵘ x → ℚ.0ℚ ℚ.< x
+normalize-≤ x x₁ = ℚ.toℚᵘ-cancel-< x₁
+
+π*π÷6 : ℝ∞
+π*π÷6 = real∞
+  π*π÷6→Set
+  f
+  g
   where
-    open ℚp
-    open R
+
+    data π*π÷6→Set (x : ℚ) : Set where
+      constr : ∀ n → x ℚ.< Series n → π*π÷6→Set x
+
+    f : (x y : ℚ) → x ℚ.< y → π*π÷6→Set y → π*π÷6→Set x
+    f _ _ x₁ (constr n x₂) = constr n (ℚ.≤-<-trans (ℚ.<⇒≤ x₁) x₂)
+
+    ppp3 : (n : ℕ) → ℚ.0ℚ ℚ.< ℚ.normalize 1 (ℕ.suc n)
+    ppp3 n = ℚ.<-≤-trans (ℚ.positive⁻¹ (ℚ.mkℚ (+ 1) n (1-coprimeTo (ℕ.suc n)))) (ℚ.≤-reflexive (sym (ℚ.normalize-coprime (1-coprimeTo (ℕ.suc n)))))
+
+    i : ∀ n → Series (ℕ.suc n) ℚ.< Series (ℕ.suc (ℕ.suc n))
+    i n = ℚ.≤-<-trans
+      {j = Series (ℕ.suc n) ℚ.+ ℚ.0ℚ}
+      {k = Series (ℕ.suc n) ℚ.+ ℚ.normalize 1 (ℕ.suc (ℕ.suc n)) ℚ.* ℚ.normalize 1 (ℕ.suc (ℕ.suc n))}
+      (ℚ.≤-reflexive (sym (ℚ.+-identityʳ (Series (ℕ.suc n)))))
+      (ℚ.+-mono-≤-< {x = Series (ℕ.suc n)}
+         (ℚ.≤-reflexive refl)
+         (ℚ.toℚᵘ-cancel-< (ℚᵘ.≤-<-trans (ℚᵘ.≤-reflexive (ℚᵘ.≃-sym ( ℚᵘ.*-zeroˡ (ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc (ℕ.suc n)))))))
+          (begin-strict
+            ℚᵘ.0ℚᵘ ℚᵘ.* ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc (ℕ.suc n)))
+              <⟨
+                ℚᵘ.*-monoˡ-<-pos (ℚ.toℚᵘ (+ 1 ℚ./ ℕ.suc (ℕ.suc n))) ⦃ ℚ.positive (ppp3 (ℕ.suc n)) ⦄ {ℚᵘ.0ℚᵘ} {ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc (ℕ.suc n)))} (ℚ.toℚᵘ-mono-< (ppp3 (ℕ.suc n)))
+              ⟩
+            ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc (ℕ.suc n))) ℚᵘ.* ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc (ℕ.suc n)))
+              ≃⟨ ℚᵘ.≃-sym (ℚ.toℚᵘ-homo-* ((+ 1 ℚ./ ℕ.suc (ℕ.suc n))) ((+ 1 ℚ./ ℕ.suc (ℕ.suc n)))) ⟩
+            ℚ.toℚᵘ ((+ 1 ℚ./ ℕ.suc (ℕ.suc n)) ℚ.* (+ 1 ℚ./ ℕ.suc (ℕ.suc n))) ∎
+          )
+         ))
+      )
+        where open ℚᵘ.≤-Reasoning
+
+    open import Data.Unit using (tt)
+
+    g : (x : ℚ) → π*π÷6→Set x → ∃ λ y → π*π÷6→Set y × x ℚ.< y
+    g _ (constr n x₁) =
+      Series (ℕ.suc n) ,
+      constr (ℕ.suc (ℕ.suc n)) (i n) ,
+      ℚ.<-trans x₁ (ℚ.≤-<-trans (ℚ.≤-reflexive (sym (ℚ.+-identityʳ (Series n))))
+        (ℚ.+-monoʳ-<
+          (Series n)
+          (ℚ.≤-<-trans (ℚ.≤-reflexive refl)
+            (ℚ.toℚᵘ-cancel-< (begin-strict_ (
+              ℚᵘ.0ℚᵘ ≃⟨ ℚᵘ.≃-sym ( ℚᵘ.*-zeroˡ (ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc n)))) ⟩
+              ℚᵘ.0ℚᵘ ℚᵘ.* (ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc n))) <⟨
+                ℚᵘ.*-monoˡ-<-pos (ℚ.toℚᵘ (+ 1 ℚ./ ℕ.suc n)) {{ ℚ.positive (ppp3 n) }} {ℚᵘ.0ℚᵘ} {ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc n))} (ℚ.toℚᵘ-mono-< (ppp3 n))
+              ⟩
+                ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc n)) ℚᵘ.* ℚ.toℚᵘ (+ 1 ℚ./ (ℕ.suc n))
+                  ≃⟨ ℚᵘ.≃-sym (ℚ.toℚᵘ-homo-* ((+ 1 ℚ./ ℕ.suc n)) ((+ 1 ℚ./ ℕ.suc n))) ⟩
+                ℚ.toℚᵘ ((+ 1 ℚ./ ℕ.suc n) ℚ.* (+ 1 ℚ./ ℕ.suc n)) ∎)
+              )
+            )
+          )
+        )
+      )
+      where open ℚᵘ.≤-Reasoning
