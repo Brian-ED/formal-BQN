@@ -7,7 +7,7 @@ open import Real using (ℝ∞; +∞; -∞)
 open import Relation.Nullary.Negation.Core using (¬_)
 open import Level using (Level) renaming (suc to lsuc; zero to lzero)
 
-module types
+module Types
   {ℓ : Level}
   (complexExtension : Bool)
   (customTypes : Set)
@@ -68,14 +68,40 @@ open import Data.Nat.ListAction using (product)
 data Array where
   arr : (shape : List ℕ) → (ravel : Vec type (product shape)) → Array
 
+-- inputs and the result are values of any type
+
+-- TODO figure out what code should be represented as, and place it here.
+-- Keep in mind the option that funcs, 1-mod, and 2-mod could have different Code types
+data Code : Set where
+
 data Function where
-  -- TODO
+  monadic : Code → Function
+  dyadic : Code → Function
 
 data 1-Modifier where
-  -- TODO
+  1mod : Code → 1-Modifier
 
 data 2-Modifier where
-  -- TODO
+  1mod : Code → 2-Modifier
 
 data Namespace where
+-- A namespace holds the variables
+-- used to evaluate a block or program,
+-- as defined in the scoping rules.
+-- The observable aspects of a namespace
+-- are that it can be compared for equality
+-- with other namespaces and that it exposes
+-- variables associated with certain names, whose values can be queried or set.
+
   -- TODO
+
+-- Uncomment if this ever becomes useful
+-- data Operation : Set where
+--   func : Function → Operation
+--   1mod : 1-Modifier → Operation
+--   2mod : 2-Modifier → Operation
+--
+-- data Data : Set (lsuc ℓ) where
+--   char : Character → Data
+--   num : Number → Data
+--   arr : Array → Data
