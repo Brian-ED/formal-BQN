@@ -25,6 +25,9 @@ import Data.Nat as ℕ; open ℕ using (ℕ) renaming (
   s≤s to ℕ<ℕ→1+ℕ<1+ℕ;
   z≤n to 0<1+ℕ )
 
+-- TODO
+-- the basic arithmetic operations add, subtract, multiply, divide, and natural exponent (base e)
+
 -- https://en.wikipedia.org/wiki/Construction_of_the_real_numbers#Construction_by_Dedekind_cuts
 -- Extended to infinities by ignoring that Ax≢⊥∧Ax≢⊤
 record ℝ∞ {ℓ} : Set (lsuc ℓ) where
