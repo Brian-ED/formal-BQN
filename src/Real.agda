@@ -75,8 +75,8 @@ data _<ℝ∞_ {ℓ} : Rel ℝ∞ (lsuc ℓ) where
       → real∞ A F G <ℝ∞ real∞ a f g
 
 
-pp : (x y : ℚ) → (x<y : x ℚ.< y) → x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½ ℚ.< y
-pp x y x<y =
+x<y→x*½+y*½<y : {x y : ℚ} → (x<y : x ℚ.< y) → x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½ ℚ.< y
+x<y→x*½+y*½<y {x} {y} x<y =
   begin-strict
     x * ½ + y * ½ <⟨
       +-monoˡ-< (y * ½)
@@ -97,8 +97,8 @@ pp x y x<y =
       open import Data.Rational.Properties
       open ℚ.≤-Reasoning
 
-pp2 : (x y : ℚ) → (x<y : x ℚ.< y) → x ℚ.< x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½
-pp2 x y x<y =
+x<y→x<x*½+y*½ : {x y : ℚ} → (x<y : x ℚ.< y) → x ℚ.< x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½
+x<y→x<x*½+y*½ {x} {y} x<y =
   begin-strict
     x ≡⟨ sym (+-identityʳ x) ⟩
     x + 0ℚ ≡⟨ sym (cong (_+_ x) (+-inverseˡ (x * ½))) ⟩
@@ -121,9 +121,7 @@ pp2 x y x<y =
       open ℚ.≤-Reasoning
 
 midpoint : (x y : ℚ) → x ℚ.< y → ∃ λ z → z ℚ.< y × x ℚ.< z
-midpoint x y x<y =
-  z , pp x y x<y , pp2 x y x<y
-  where z = x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½
+midpoint x y x<y = x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½ , x<y→x*½+y*½<y x<y , x<y→x<x*½+y*½ x<y
 
 ℚ→ℝ∞ : ℚ → ℝ∞
 ℚ→ℝ∞ x = real∞
