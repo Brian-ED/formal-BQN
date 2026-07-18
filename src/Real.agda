@@ -153,24 +153,22 @@ Series (ℕ.suc n) = Series n + (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
         where open ≤-Reasoning
 
     g : (x : ℚ) → π*π÷6→Set x → ∃ λ y → π*π÷6→Set y × x < y
-    g _ (constr n x₁) =
+    g x (constr n x₁) =
       Series (ℕ.suc n) ,
       constr (ℕ.suc (ℕ.suc n)) (i n) ,
-      <-trans x₁ (≤-<-trans (≤-reflexive (sym (+-identityʳ (Series n))))
-        (+-monoʳ-<
-          (Series n)
-          (≤-<-trans (≤-reflexive refl)
-            (toℚᵘ-cancel-< (begin-strict_ (
-              ℚᵘ.0ℚᵘ ≃⟨ ℚᵘ.≃-sym ( ℚᵘ.*-zeroˡ (toℚᵘ (+ 1 / (ℕ.suc n)))) ⟩
-              ℚᵘ.0ℚᵘ ℚᵘ.* (toℚᵘ (+ 1 / (ℕ.suc n))) <⟨
-                ℚᵘ.*-monoˡ-<-pos (toℚᵘ (+ 1 / ℕ.suc n)) {{ positive (ppp3 n) }} {ℚᵘ.0ℚᵘ} {toℚᵘ (+ 1 / (ℕ.suc n))} (toℚᵘ-mono-< (ppp3 n))
+      (begin-strict
+        x <⟨ x₁ ⟩
+        Series n ≡⟨ sym (+-identityʳ (Series n)) ⟩
+        Series n + 0ℚ <⟨
+          +-monoʳ-< (Series n)
+            (begin-strict
+              0ℚ ≡⟨ sym (*-zeroˡ (+ 1 / (ℕ.suc n))) ⟩
+              0ℚ * (+ 1 / (ℕ.suc n)) <⟨
+                *-monoˡ-<-pos (+ 1 / ℕ.suc n) ⦃ positive (ppp3 n) ⦄ (ppp3 n)
               ⟩
-                toℚᵘ (+ 1 / (ℕ.suc n)) ℚᵘ.* toℚᵘ (+ 1 / (ℕ.suc n))
-                  ≃⟨ ℚᵘ.≃-sym (toℚᵘ-homo-* ((+ 1 / ℕ.suc n)) ((+ 1 / ℕ.suc n))) ⟩
-                toℚᵘ ((+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)) ∎)
-              )
-            )
-          )
-        )
-      )
-      where open ℚᵘ.≤-Reasoning
+                (+ 1 / (ℕ.suc n)) * (+ 1 / (ℕ.suc n))
+            ∎)
+        ⟩
+        Series (ℕ.suc n)
+      ∎)
+      where open ≤-Reasoning
