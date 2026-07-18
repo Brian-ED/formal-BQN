@@ -9,12 +9,14 @@ open import Data.Unit using (⊤; tt)
 open import Relation.Nullary.Negation.Core using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Level using () renaming (suc to lsuc)
+open import Data.Nat.Coprimality using (Coprime; 1-coprimeTo)
+open import Relation.Nullary.Negation.Core using (¬_)
+open import Relation.Binary.Core using (Rel)
 
 import Data.Rational as ℚ; open ℚ using (ℚ)
 import Data.Rational.Properties as ℚ
 import Data.Rational.Unnormalised as ℚᵘ; open ℚᵘ using (ℚᵘ)
 import Data.Rational.Unnormalised.Properties as ℚᵘ
-open import Data.Nat.Coprimality using (Coprime; 1-coprimeTo)
 
 import Data.Integer as ℤ; open ℤ using (ℤ; +_) renaming (
   +<+ to ℕ<ℕ→ℤ<ℤ)
@@ -22,9 +24,6 @@ import Data.Integer as ℤ; open ℤ using (ℤ; +_) renaming (
 import Data.Nat as ℕ; open ℕ using (ℕ) renaming (
   s≤s to ℕ<ℕ→1+ℕ<1+ℕ;
   z≤n to 0<1+ℕ )
-
-
-open import Relation.Nullary.Negation.Core using (¬_)
 
 -- https://en.wikipedia.org/wiki/Construction_of_the_real_numbers#Construction_by_Dedekind_cuts
 -- Extended to infinities by ignoring that Ax≢⊥∧Ax≢⊤
@@ -45,27 +44,6 @@ record ℝ∞ {ℓ} : Set (lsuc ℓ) where
   ℚ.≤-<-trans
     (ℚ.≤-reflexive (sym (ℚ.+-identityʳ x)))
     (ℚ.+-monoʳ-< x 0<1)
-
-
---import Data.Rational.Properties
---  using (<⇒≤;fromℚᵘ-cong;toℚᵘ-cong;toℚᵘ-cancel-<;toℚᵘ-mono-<; nonZero⇒1/nonZero)
---  renaming (
---  ≤-reflexive to ℚx≡y→x≤y;
---  ≤-<-trans to ℚx≤y→y<z→x<z;
---  +-monoʳ-< to ℚy<z→x+y<x+z;
---  +-identityʳ to ℚx+0≡x;
---  <-≤-trans to ℚx<y→y≤z→x<z;
---  <-trans to ℚx<y→y<z→x<z;
---  positive⁻¹ to ℚpositive⁻¹;
---  pos⇒nonZero to ℚpos⇒nonZero;
---  pos⇒nonNeg to ℚpos⇒nonNeg;
---  1/pos⇒pos to ℚ1/pos⇒pos;
---  *-monoʳ-≤-nonNeg to ℚ*-monoʳ-≤-nonNeg;
---  *-monoʳ-<-pos to ℚ*-monoʳ-<-pos
---  )
-
-
-open import Relation.Binary.Core using (Rel)
 
 data _<ℝ∞_ {ℓ} : Rel ℝ∞ (lsuc ℓ) where
   *<ℝ∞* : {A a : ℚ → Set ℓ}
