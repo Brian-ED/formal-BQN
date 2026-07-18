@@ -7,7 +7,7 @@ open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤; tt)
 open import Relation.Nullary.Negation.Core using (¬_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
 open import Level using () renaming (suc to lsuc)
 
 import Data.Rational as ℚ; open ℚ using (ℚ)
@@ -74,15 +74,63 @@ data _<ℝ∞_ {ℓ} : Rel ℝ∞ (lsuc ℓ) where
       → (∃ λ x → A x → ¬ a x)
       → real∞ A F G <ℝ∞ real∞ a f g
 
---midpoint : (x y : ℚ) → x ℚ.< y → ∃ λ z → z ℚ.< y × x ℚ.< z
---midpoint x y z =
---  (x ℚ.+ y) ℚ.* ℚ.½
---  , {!   !} --ℚ.≤-<-trans {(x ℚ.+ y) ℚ.* ℚ.½} {{!   !}} (ℚ.<⇒≤ {!  ℚ.*-distribʳ-+ ℚ.½ x y !}) {!   !} , {!   !}
 
---ℚ→ℝ∞ : ℚ → ℝ∞
---ℚ→ℝ∞ x = real∞
---  (ℚ._< x) (λ xx yy → ℚ.<-trans) (λ a → midpoint a x)
---
+pp : (x y : ℚ) → (x<y : x ℚ.< y) → x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½ ℚ.< y
+pp x y x<y =
+  begin-strict
+    x * ½ + y * ½ <⟨
+      +-monoˡ-< (y * ½)
+        (begin-strict
+          x * ½ <⟨ *-monoˡ-<-pos ½ x<y ⟩
+          y * ½ ≡⟨ *-distribˡ-+ y 1ℚ -½ ⟩
+          y * 1ℚ + y * -½ ≡⟨ cong (y * 1ℚ ℚ.+_) (sym (neg-distribʳ-* y ½)) ⟩
+          y * 1ℚ - (y * ½) ≡⟨ cong (_+ - (y * ½)) (*-identityʳ y) ⟩
+          y - y * ½
+        ∎)
+    ⟩
+    y - y * ½ + y * ½ ≡⟨ +-assoc y (- (y * ½)) (y * ½) ⟩
+    y + (- (y * ½) + y * ½) ≡⟨ cong (_+_ y) (+-inverseˡ (y * ½)) ⟩
+    y + 0ℚ ≡⟨ +-identityʳ y ⟩
+    y ∎
+    where
+      open import Data.Rational
+      open import Data.Rational.Properties
+      open ℚ.≤-Reasoning
+
+pp2 : (x y : ℚ) → (x<y : x ℚ.< y) → x ℚ.< x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½
+pp2 x y x<y =
+  begin-strict
+    x ≡⟨ sym (+-identityʳ x) ⟩
+    x + 0ℚ ≡⟨ sym (cong (_+_ x) (+-inverseˡ (x * ½))) ⟩
+    x + (- (x * ½) + x * ½) ≡⟨ sym (+-assoc x (- (x * ½)) (x * ½)) ⟩
+    x - x * ½ + x * ½
+    <⟨
+      +-monoˡ-< (x * ½) (begin-strict
+        x - x * ½ ≡⟨ sym (cong (_+ - (x * ½)) (*-identityʳ x)) ⟩
+        x * 1ℚ - x * ½ ≡⟨ sym (cong (x * 1ℚ ℚ.+_) (sym (neg-distribʳ-* x ½))) ⟩
+        x * 1ℚ + x * -½ ≡⟨ sym (*-distribˡ-+ x 1ℚ -½) ⟩
+        x * ½ <⟨ *-monoˡ-<-pos ½ x<y ⟩
+        y * ½
+      ∎)
+    ⟩
+    y * ½ + x * ½ ≡⟨ +-comm (y * ½) (x * ½) ⟩
+    x * ½ + y * ½ ∎
+    where
+      open import Data.Rational
+      open import Data.Rational.Properties
+      open ℚ.≤-Reasoning
+
+midpoint : (x y : ℚ) → x ℚ.< y → ∃ λ z → z ℚ.< y × x ℚ.< z
+midpoint x y x<y =
+  z , pp x y x<y , pp2 x y x<y
+  where z = x ℚ.* ℚ.½ ℚ.+ y ℚ.* ℚ.½
+
+ℚ→ℝ∞ : ℚ → ℝ∞
+ℚ→ℝ∞ x = real∞
+  (ℚ._< x) (λ xx yy → ℚ.<-trans) (λ a → midpoint a x)
+
+
+-- I'll define √ when i need it
 --√_ : ℝ∞ → ℝ∞
 --√ r = real∞
 --    LeftOfCut
