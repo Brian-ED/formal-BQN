@@ -147,7 +147,7 @@ Series (ℕ.suc n) = Series n + (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
               <⟨
                 *-monoˡ-<-pos (+ 1 / ℕ.suc (ℕ.suc n)) {{positive (ppp3 (ℕ.suc n))}} (ppp3 (ℕ.suc n))
               ⟩
-            ((+ 1 / ℕ.suc (ℕ.suc n)) * (+ 1 / ℕ.suc (ℕ.suc n))) ∎
+            (+ 1 / ℕ.suc (ℕ.suc n)) * (+ 1 / ℕ.suc (ℕ.suc n)) ∎
           )
       )
         where open ≤-Reasoning
@@ -162,11 +162,11 @@ Series (ℕ.suc n) = Series n + (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
         Series n + 0ℚ <⟨
           +-monoʳ-< (Series n)
             (begin-strict
-              0ℚ ≡⟨ sym (*-zeroˡ (+ 1 / (ℕ.suc n))) ⟩
-              0ℚ * (+ 1 / (ℕ.suc n)) <⟨
+              0ℚ ≡⟨ sym (*-zeroˡ (+ 1 / ℕ.suc n)) ⟩
+              0ℚ * (+ 1 / ℕ.suc n) <⟨
                 *-monoˡ-<-pos (+ 1 / ℕ.suc n) ⦃ positive (ppp3 n) ⦄ (ppp3 n)
               ⟩
-                (+ 1 / (ℕ.suc n)) * (+ 1 / (ℕ.suc n))
+              (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
             ∎)
         ⟩
         Series (ℕ.suc n)
