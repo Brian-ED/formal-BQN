@@ -17,6 +17,7 @@ open import Data.Rational
 open import Data.Rational.Properties
 import Data.Rational.Unnormalised as ℚᵘ; open ℚᵘ using (ℚᵘ)
 import Data.Rational.Unnormalised.Properties as ℚᵘ
+import Data.Nat.ListAction using (sum)
 
 import Data.Integer as ℤ; open ℤ using (ℤ; +_) renaming (
   +<+ to ℕ<ℕ→ℤ<ℤ)
@@ -66,7 +67,7 @@ x<y→x*½+y*½<y {x} {y} x<y =
           x * ½ <⟨ *-monoˡ-<-pos ½ x<y ⟩
           y * ½ ≡⟨ *-distribˡ-+ y 1ℚ -½ ⟩
           y * 1ℚ + y * -½ ≡⟨ cong (_+_ (y * 1ℚ)) (sym (neg-distribʳ-* y ½)) ⟩
-          y * 1ℚ - (y * ½) ≡⟨ cong (_+ - (y * ½)) (*-identityʳ y) ⟩
+          y * 1ℚ - y * ½ ≡⟨ cong (_+ - (y * ½)) (*-identityʳ y) ⟩
           y - y * ½
         ∎)
     ⟩
@@ -117,9 +118,12 @@ midpoint x y x<y = x * ½ + y * ½ , x<y→x*½+y*½<y x<y , x<y→x<x*½+y*½ x
 --    f : ∀ x y → x < y → LeftOfCut y → LeftOfCut x
 --    f x y x₁ x₂ = {!   !}
 
+1/⟨1+_⟩ : ℕ → ℚ
+1/⟨1+ n ⟩ = mkℚ (+ 1) n (1-coprimeTo (ℕ.suc n))
+
 Series : ℕ → ℚ
 Series ℕ.zero = 0ℚ
-Series (ℕ.suc n) = Series n + (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
+Series (ℕ.suc n) = Series n + 1/⟨1+ n ⟩ * 1/⟨1+ n ⟩
 
 π*π÷6 : ℝ∞
 π*π÷6 = real∞
@@ -127,48 +131,30 @@ Series (ℕ.suc n) = Series n + (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
   f
   g
   where
-
     data π*π÷6→Set (x : ℚ) : Set where
       constr : ∀ n → x < Series n → π*π÷6→Set x
 
     f : (x y : ℚ) → x < y → π*π÷6→Set y → π*π÷6→Set x
-    f _ _ x₁ (constr n x₂) = constr n (≤-<-trans (<⇒≤ x₁) x₂)
+    f _ _ x₁ (constr n x₂) = constr n (<-trans x₁ x₂)
 
-    ppp3 : (n : ℕ) → 0ℚ < normalize 1 (ℕ.suc n)
-    ppp3 n = <-≤-trans (positive⁻¹ (mkℚ (+ 1) n (1-coprimeTo (ℕ.suc n)))) (≤-reflexive (sym (normalize-coprime (1-coprimeTo (ℕ.suc n)))))
-
-    i : ∀ n → Series (ℕ.suc n) < Series (ℕ.suc (ℕ.suc n))
-    i n = ≤-<-trans
-      (≤-reflexive (sym (+-identityʳ (Series (ℕ.suc n)))))
-      (+-monoʳ-< (Series (ℕ.suc n))
+    monotone : (n : ℕ) → Series n < Series (ℕ.suc n)
+    monotone n = begin-strict
+      Series n ≡⟨ sym (+-identityʳ (Series n)) ⟩
+      Series n + 0ℚ <⟨
+        +-monoʳ-< (Series n)
           (begin-strict
-            0ℚ ≡⟨ sym (*-zeroˡ (+ 1 / (ℕ.suc (ℕ.suc n)))) ⟩
-            0ℚ * (+ 1 / (ℕ.suc (ℕ.suc n)))
-              <⟨
-                *-monoˡ-<-pos (+ 1 / ℕ.suc (ℕ.suc n)) {{positive (ppp3 (ℕ.suc n))}} (ppp3 (ℕ.suc n))
-              ⟩
-            (+ 1 / ℕ.suc (ℕ.suc n)) * (+ 1 / ℕ.suc (ℕ.suc n)) ∎
-          )
-      )
-        where open ≤-Reasoning
+            0ℚ ≡⟨ sym (*-zeroˡ 1/⟨1+ n ⟩) ⟩
+            0ℚ * 1/⟨1+ n ⟩ <⟨
+              *-monoˡ-<-pos 1/⟨1+ n ⟩ (positive⁻¹ 1/⟨1+ n ⟩)
+            ⟩
+            1/⟨1+ n ⟩ * 1/⟨1+ n ⟩
+          ∎)
+      ⟩
+      Series (ℕ.suc n) ∎
+      where open ≤-Reasoning
 
     g : (x : ℚ) → π*π÷6→Set x → ∃ λ y → π*π÷6→Set y × x < y
     g x (constr n x₁) =
-      Series (ℕ.suc n) ,
-      constr (ℕ.suc (ℕ.suc n)) (i n) ,
-      (begin-strict
-        x <⟨ x₁ ⟩
-        Series n ≡⟨ sym (+-identityʳ (Series n)) ⟩
-        Series n + 0ℚ <⟨
-          +-monoʳ-< (Series n)
-            (begin-strict
-              0ℚ ≡⟨ sym (*-zeroˡ (+ 1 / ℕ.suc n)) ⟩
-              0ℚ * (+ 1 / ℕ.suc n) <⟨
-                *-monoˡ-<-pos (+ 1 / ℕ.suc n) ⦃ positive (ppp3 n) ⦄ (ppp3 n)
-              ⟩
-              (+ 1 / ℕ.suc n) * (+ 1 / ℕ.suc n)
-            ∎)
-        ⟩
-        Series (ℕ.suc n)
-      ∎)
-      where open ≤-Reasoning
+      Series (ℕ.suc n)
+      , constr (ℕ.suc (ℕ.suc n)) (monotone (ℕ.suc n))
+      , <-trans x₁ (monotone n)
