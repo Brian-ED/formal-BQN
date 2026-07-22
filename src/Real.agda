@@ -1,131 +1,90 @@
 module Real where
 
-open import Data.Product using (Σ; ∃; _,_; proj₁; proj₂)
-open import Function using (_∘_)
-open import Data.Product using (_×_)
+open import Data.Product using (∃; ∃₂; _,_; _×_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Empty using (⊥)
-open import Data.Unit using (⊤; tt)
+open import Data.Unit using (⊤)
 open import Relation.Nullary.Negation.Core using (¬_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl; sym; trans; cong)
-open import Level using () renaming (suc to lsuc)
-open import Data.Nat.Coprimality using (Coprime; 1-coprimeTo)
-open import Relation.Nullary.Negation.Core using (¬_)
+open import Data.Nat.Coprimality using (1-coprimeTo)
 open import Relation.Binary.Core using (Rel)
+open import Relation.Nullary using (yes; no)
 
 open import Data.Rational
 open import Data.Rational.Properties
-import Data.Rational.Unnormalised as ℚᵘ; open ℚᵘ using (ℚᵘ)
-import Data.Rational.Unnormalised.Properties as ℚᵘ
-import Data.Nat.ListAction using (sum)
+open import Relation.Binary.PropositionalEquality
 
-import Data.Integer as ℤ; open ℤ using (ℤ; +_) renaming (
-  +<+ to ℕ<ℕ→ℤ<ℤ)
-
-import Data.Nat as ℕ; open ℕ using (ℕ) renaming (
-  s≤s to ℕ<ℕ→1+ℕ<1+ℕ;
-  z≤n to 0<1+ℕ )
+import Level
+import Data.Integer as ℤ; open ℤ using (ℤ)
+import Data.Nat     as ℕ; open ℕ using (ℕ)
 
 -- TODO
 -- the basic arithmetic operations add, subtract, multiply, divide, and natural exponent (base e)
 
 -- https://en.wikipedia.org/wiki/Construction_of_the_real_numbers#Construction_by_Dedekind_cuts
 -- Extended to infinities by ignoring that Ax≢⊥∧Ax≢⊤
-record ℝ∞ {ℓ} : Set (lsuc ℓ) where
+record ℝ∞ {ℓ} : Set (Level.suc ℓ) where
   constructor real∞
   field
-    LeftOfCut  : ℚ → Set ℓ
+    LeftOfCut  : ℚ → Set
     leftFilled : ∀ x y → x < y → LeftOfCut y → LeftOfCut x
     noMax      : ∀ x → LeftOfCut x → ∃ λ y → LeftOfCut y × x < y
 
--∞ : ℝ∞
--∞ = real∞ (λ z → ⊥) (λ a b p2 ()) λ x ()
-
 0<1 : 0ℚ < 1ℚ
-0<1 = *<* (ℕ<ℕ→ℤ<ℤ (ℕ<ℕ→1+ℕ<1+ℕ (0<1+ℕ)))
+0<1 = *<* (ℤ.+<+ (ℕ.s≤s (ℕ.z≤n)))
 
-+∞ : ℝ∞
-+∞ = real∞ (λ x → ⊤) (λ a b p2 p3 → tt) λ x tt → (x + 1ℚ) , tt ,
+¬1<0 : 1ℚ < 0ℚ → ⊥
+¬1<0 (*<* (ℤ.+<+ ()))
+
+∞ -∞ : ∀ {ℓ} → ℝ∞ {ℓ}
+-∞ = real∞ (λ z → ⊥) (λ a b p2 ()) λ x ()
+∞  = real∞ (λ x → ⊤) _ λ x y → (x + 1ℚ) , y ,
   ≤-<-trans
     (≤-reflexive (sym (+-identityʳ x)))
     (+-monoʳ-< x 0<1)
 
-data _<ℝ∞_ {ℓ} : Rel ℝ∞ (lsuc ℓ) where
-  *<ℝ∞* : {A a : ℚ → Set ℓ}
+data _<ℝ∞_ {ℓ} : Rel (ℝ∞ {ℓ}) (Level.suc ℓ) where
+  *<ℝ∞* : {A a : ℚ → Set}
       → ∀ {F f G g}
       → (∀ x → A x → a x)
       → (∃ λ x → A x → ¬ a x)
       → real∞ A F G <ℝ∞ real∞ a f g
 
-
-x<y→x*½+y*½<y : {x y : ℚ} → (x<y : x < y) → x * ½ + y * ½ < y
-x<y→x*½+y*½<y {x} {y} x<y =
-  begin-strict
-    x * ½ + y * ½ <⟨
-      +-monoˡ-< (y * ½)
-        (begin-strict
-          x * ½ <⟨ *-monoˡ-<-pos ½ x<y ⟩
-          y * ½ ≡⟨ *-distribˡ-+ y 1ℚ -½ ⟩
-          y * 1ℚ + y * -½ ≡⟨ cong (_+_ (y * 1ℚ)) (sym (neg-distribʳ-* y ½)) ⟩
-          y * 1ℚ - y * ½ ≡⟨ cong (_+ - (y * ½)) (*-identityʳ y) ⟩
-          y - y * ½
-        ∎)
-    ⟩
-    y - y * ½ + y * ½ ≡⟨ +-assoc y (- (y * ½)) (y * ½) ⟩
-    y + (- (y * ½) + y * ½) ≡⟨ cong (_+_ y) (+-inverseˡ (y * ½)) ⟩
-    y + 0ℚ ≡⟨ +-identityʳ y ⟩
-    y ∎
-    where
-      open ≤-Reasoning
-
-x<y→x<x*½+y*½ : {x y : ℚ} → (x<y : x < y) → x < x * ½ + y * ½
-x<y→x<x*½+y*½ {x} {y} x<y =
-  begin-strict
-    x ≡⟨ sym (+-identityʳ x) ⟩
-    x + 0ℚ ≡⟨ sym (cong (_+_ x) (+-inverseˡ (x * ½))) ⟩
-    x + (- (x * ½) + x * ½) ≡⟨ sym (+-assoc x (- (x * ½)) (x * ½)) ⟩
-    x - x * ½ + x * ½
-    <⟨
-      +-monoˡ-< (x * ½) (begin-strict
-        x - x * ½ ≡⟨ sym (cong (_+ - (x * ½)) (*-identityʳ x)) ⟩
-        x * 1ℚ - x * ½ ≡⟨ sym (cong (_+_ (x * 1ℚ)) (sym (neg-distribʳ-* x ½))) ⟩
-        x * 1ℚ + x * -½ ≡⟨ sym (*-distribˡ-+ x 1ℚ -½) ⟩
-        x * ½ <⟨ *-monoˡ-<-pos ½ x<y ⟩
-        y * ½
-      ∎)
-    ⟩
-    y * ½ + x * ½ ≡⟨ +-comm (y * ½) (x * ½) ⟩
-    x * ½ + y * ½ ∎
-    where
-      open ≤-Reasoning
+x≡x*½+x*½ : ∀ {x} → x ≡ x * ½ + x * ½
+x≡x*½+x*½ {x} =
+  x ≡⟨ sym (+-identityʳ x) ⟩
+  x + 0ℚ ≡⟨ cong (_+_ x) (sym (+-inverseˡ (x * ½))) ⟩
+  x + (- (x * ½) + x * ½) ≡⟨ sym (+-assoc x (- (x * ½)) (x * ½)) ⟩
+  x - x * ½ + x * ½ ≡⟨ cong (λ y → y - x * ½ + x * ½) (sym (*-identityʳ x)) ⟩
+  x * 1ℚ - x * ½ + x * ½ ≡⟨ cong (λ y → x * 1ℚ + y + x * ½) (neg-distribʳ-* x ½) ⟩
+  x * 1ℚ + x * -½ + x * ½ ≡⟨ cong (_+ x * ½) (sym (*-distribˡ-+ x 1ℚ -½)) ⟩
+  x * ½ + x * ½ ∎
+  where open ≡-Reasoning
 
 midpoint : (x y : ℚ) → x < y → ∃ λ z → z < y × x < z
-midpoint x y x<y = x * ½ + y * ½ , x<y→x*½+y*½<y x<y , x<y→x<x*½+y*½ x<y
+midpoint x y x<y = x * ½ + y * ½
+  , (begin-strict
+    x * ½ + y * ½ <⟨ +-monoˡ-< (y * ½) (*-monoˡ-<-pos ½ x<y) ⟩
+    y * ½ + y * ½ ≡⟨ sym x≡x*½+x*½ ⟩
+    y ∎
+  ) , (begin-strict
+    x ≡⟨ x≡x*½+x*½ ⟩
+    x * ½ + x * ½ <⟨ +-monoʳ-< (x * ½) (*-monoˡ-<-pos ½ x<y) ⟩
+    x * ½ + y * ½ ∎
+  )
+  where open ≤-Reasoning
 
-ℚ→ℝ∞ : ℚ → ℝ∞
-ℚ→ℝ∞ x = real∞
-  (_< x) (λ xx yy → <-trans) (λ a → midpoint a x)
-
-
--- I'll define √ when i need it
---√_ : ℝ∞ → ℝ∞
---√ r = real∞
---    LeftOfCut
---    f
---    {!   !}
---  where
---    LeftOfCut = λ q → 0ℚ > q ⊎ ℚ→ℝ∞ (q * q) <ℝ∞ r
---    f : ∀ x y → x < y → LeftOfCut y → LeftOfCut x
---    f x y x₁ x₂ = {!   !}
+ℚ→ℝ∞ : ∀ {ℓ} → ℚ → ℝ∞ {ℓ}
+ℚ→ℝ∞ y = real∞
+  (_< y) (λ xx yy → <-trans) (λ x → midpoint x y)
 
 1/⟨1+_⟩ : ℕ → ℚ
-1/⟨1+ n ⟩ = mkℚ (+ 1) n (1-coprimeTo (ℕ.suc n))
+1/⟨1+ n ⟩ = mkℚ+ 1 (ℕ.suc n) (1-coprimeTo (ℕ.suc n))
 
 Series : ℕ → ℚ
 Series ℕ.zero = 0ℚ
 Series (ℕ.suc n) = Series n + 1/⟨1+ n ⟩ * 1/⟨1+ n ⟩
 
-π*π÷6 : ℝ∞
+π*π÷6 : ∀ {ℓ} → ℝ∞ {ℓ}
 π*π÷6 = real∞
   π*π÷6→Set
   f
@@ -140,16 +99,8 @@ Series (ℕ.suc n) = Series n + 1/⟨1+ n ⟩ * 1/⟨1+ n ⟩
     monotone : (n : ℕ) → Series n < Series (ℕ.suc n)
     monotone n = begin-strict
       Series n ≡⟨ sym (+-identityʳ (Series n)) ⟩
-      Series n + 0ℚ <⟨
-        +-monoʳ-< (Series n)
-          (begin-strict
-            0ℚ ≡⟨ sym (*-zeroˡ 1/⟨1+ n ⟩) ⟩
-            0ℚ * 1/⟨1+ n ⟩ <⟨
-              *-monoˡ-<-pos 1/⟨1+ n ⟩ (positive⁻¹ 1/⟨1+ n ⟩)
-            ⟩
-            1/⟨1+ n ⟩ * 1/⟨1+ n ⟩
-          ∎)
-      ⟩
+      Series n + 0ℚ ≡⟨ cong (_+_ (Series n)) (sym (*-zeroˡ 1/⟨1+ n ⟩)) ⟩
+      Series n + 0ℚ * 1/⟨1+ n ⟩ <⟨ +-monoʳ-< (Series n) (*-monoˡ-<-pos 1/⟨1+ n ⟩ (positive⁻¹ 1/⟨1+ n ⟩)) ⟩
       Series (ℕ.suc n) ∎
       where open ≤-Reasoning
 
